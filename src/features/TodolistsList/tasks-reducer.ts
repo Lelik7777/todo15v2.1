@@ -9,7 +9,7 @@ import {
 } from '../../api/todolists-api'
 import {Dispatch} from 'redux'
 import {AppRootStateType, CommonActionType} from '../../app/store'
-import {setStatusApp} from '../../app/appReducer';
+import {setError, setStatusApp} from '../../app/appReducer';
 
 const initialState: TasksStateType = {}
 
@@ -64,7 +64,7 @@ export const fetchTasksTC = (todolistId: string) =>
             dispatch(setTasksAC(res.data.items, todolistId));
             dispatch(setStatusApp('successful'));
         } catch (e) {
-
+            console.log(e)
         }
     }
 export const removeTaskTC = (taskId: string, todolistId: string) =>
@@ -81,15 +81,20 @@ export const removeTaskTC = (taskId: string, todolistId: string) =>
     }
 export const addTaskTC = (title: string, todolistId: string) =>
     async (dispatch: Dispatch<CommonActionType>) => {
+        debugger
         dispatch(setStatusApp('loaded'));
         const res = await todolistsAPI.createTask(todolistId, title);
         try {
             if (res.data.resultCode === ResponseResultCode.success) {
                 dispatch(addTaskAC(res.data.data.item));
-                dispatch(setStatusApp('successful'));
             }
-        } catch (e:any) {
+            if (res.data.messages.length) {
+                dispatch(setError(res.data.messages[0]));
+            }
+        } catch (e: any) {
             console.log(e.message)
+        } finally {
+            dispatch(setStatusApp('successful'));
         }
 
     }

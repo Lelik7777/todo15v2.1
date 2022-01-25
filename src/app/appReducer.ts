@@ -6,7 +6,7 @@ const initialState = {
 export const appReducer = (state: InitialStateType = initialState, action: ActionsAppType): InitialStateType => {
     switch (action.type) {
         case 'APP_SET_STATUS':
-            debugger
+           // debugger
             return {...state, status: action.status};
         case 'APP_SET_ERROR':
             return {...state, error: action.error};

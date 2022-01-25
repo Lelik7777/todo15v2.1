@@ -1,7 +1,8 @@
 import {ResponseResultCode, todolistsAPI, TodolistType} from '../../api/todolists-api'
 import {Dispatch} from 'redux'
-import {setStatusApp} from '../../app/appReducer';
-import {CommonActionType} from '../../app/store';
+import {setError, setStatusApp} from '../../app/appReducer';
+import {AppRootStateType, CommonActionType} from '../../app/store';
+import axios from 'axios';
 
 const initialState: Array<TodolistDomainType> = []
 
@@ -55,6 +56,7 @@ export const fetchTodolistsTC = () =>
 
 export const removeTodolistTC = (todolistId: string) =>
     async (dispatch: Dispatch<CommonActionType>) => {
+
         dispatch(setStatusApp('loaded'));
         const res = await todolistsAPI.deleteTodolist(todolistId);
         try {
@@ -64,20 +66,36 @@ export const removeTodolistTC = (todolistId: string) =>
             }
 
         } catch (e) {
-
+debugger
+            console.log(e)
         }
     }
 export const addTodolistTC = (title: string) =>
-    async (dispatch: Dispatch<CommonActionType>) => {
+    async (dispatch: Dispatch<CommonActionType>,getState:()=>AppRootStateType) => {
         dispatch(setStatusApp('loaded'));
         const res = await todolistsAPI.createTodolist(title);
         try {
             if (res.data.resultCode === ResponseResultCode.success) {
                 dispatch(addTodolistAC(res.data.data.item));
-                dispatch(setStatusApp('successful'));
+            }
+            else {
+                if (res.data.messages.length) {
+                    dispatch(setError(res.data.messages[0]));
+                }
+                else {
+                    dispatch(setError('some error occurred'))
+                }
+                dispatch(setStatusApp('failed'));
             }
 
         } catch (e) {
+          if (axios.isAxiosError(e) && e.response) {
+             dispatch(setError(e.response.data.error))
+          }
+        } finally {
+            if(!(getState().app.status==='failed')){
+                dispatch(setStatusApp('successful'));
+            }
 
         }
     }
@@ -96,16 +114,16 @@ export const changeTodolistTitleTC = (id: string, title: string) =>
     }
 
 // types
-        export type AddTodolistActionType = ReturnType<typeof addTodolistAC>;
-        export type RemoveTodolistActionType = ReturnType<typeof removeTodolistAC>;
-        export type SetTodolistsActionType = ReturnType<typeof setTodolistsAC>;
-        export type ActionsTodoListsType =
-            | RemoveTodolistActionType
-            | AddTodolistActionType
-            | ReturnType<typeof changeTodolistTitleAC>
-            | ReturnType<typeof changeTodolistFilterAC>
-            | SetTodolistsActionType
-        export type FilterValuesType = 'all' | 'active' | 'completed';
-        export type TodolistDomainType = TodolistType & {
-            filter: FilterValuesType
-        }
+export type AddTodolistActionType = ReturnType<typeof addTodolistAC>;
+export type RemoveTodolistActionType = ReturnType<typeof removeTodolistAC>;
+export type SetTodolistsActionType = ReturnType<typeof setTodolistsAC>;
+export type ActionsTodoListsType =
+    | RemoveTodolistActionType
+    | AddTodolistActionType
+    | ReturnType<typeof changeTodolistTitleAC>
+    | ReturnType<typeof changeTodolistFilterAC>
+    | SetTodolistsActionType
+export type FilterValuesType = 'all' | 'active' | 'completed';
+export type TodolistDomainType = TodolistType & {
+    filter: FilterValuesType
+}
