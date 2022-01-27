@@ -16,7 +16,6 @@ import LinearProgress from '@mui/material/LinearProgress';
 import {useSelector} from 'react-redux';
 import {AppRootStateType} from './store';
 import {RequestStatusType} from './appReducer';
-import {ResponseResultCode} from '../api/todolists-api';
 import {ErrorSnackBar} from '../components/snackBar/ErrorSnackBar';
 
 

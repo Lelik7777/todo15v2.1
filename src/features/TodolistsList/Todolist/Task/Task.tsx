@@ -1,10 +1,13 @@
-import React, { ChangeEvent, useCallback } from 'react'
-import { EditableSpan } from '../../../../components/EditableSpan/EditableSpan'
-import { TaskStatuses, TaskType } from '../../../../api/todolists-api'
+import React, {ChangeEvent, useCallback} from 'react'
+import {EditableSpan} from '../../../../components/EditableSpan/EditableSpan'
+import {TaskStatuses, TaskType} from '../../../../api/todolists-api'
 
-import { Delete } from '@mui/icons-material';
+import {Delete} from '@mui/icons-material';
 import IconButton from '@mui/material/IconButton';
 import Checkbox from '@mui/material/Checkbox';
+import {useSelector} from 'react-redux';
+import {AppRootStateType} from '../../../../app/store';
+import {RequestStatusType} from '../../../../app/appReducer';
 
 type TaskPropsType = {
     task: TaskType
@@ -14,6 +17,9 @@ type TaskPropsType = {
     removeTask: (taskId: string, todolistId: string) => void
 }
 export const Task = React.memo((props: TaskPropsType) => {
+    const status = useSelector<AppRootStateType, RequestStatusType | null>
+    (state => state.todolists.find(x => x.id === props.todolistId)?.entityStatus ?? null);
+
     const onClickHandler = useCallback(() => props.removeTask(props.task.id, props.todolistId), [props.task.id, props.todolistId]);
 
     const onChangeHandler = useCallback((e: ChangeEvent<HTMLInputElement>) => {
@@ -33,7 +39,7 @@ export const Task = React.memo((props: TaskPropsType) => {
         />
 
         <EditableSpan value={props.task.title} onChange={onTitleChangeHandler}/>
-        <IconButton onClick={onClickHandler}>
+        <IconButton onClick={onClickHandler} disabled={status === 'loaded'}>
             <Delete/>
         </IconButton>
     </div>
